@@ -21,3 +21,8 @@
 #
 # For removing AVPs, use DROP:
 #  DROP = "Grouped-AVP1" : "Octetstring-AVP1";
+# 
+# For rewriting AVPs, use REWRITE:
+# With the Regex to match and then the replaces
+# For example the below would rewrite a username starting with 00101xxxx with 00202xxxx
+# REWRITE = "Username" -> "(00101)(\d*)" : "00202(2)";
