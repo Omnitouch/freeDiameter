@@ -242,6 +242,7 @@ static int compare_match(char * str, size_t len, struct match_data * md, int * r
 	
 	/* Plain strings: we compare with strncasecmp */
 	if (md->is_regex == 0) {
+		LOG_E("Comparing as a plain string");
 		*res = strncasecmp(str, md->plain, len);
 		return 0;
 	}
@@ -262,6 +263,7 @@ static int compare_match(char * str, size_t len, struct match_data * md, int * r
 		/* We have to create a copy of the string in this case */
 		char *mystrcpy;
 		CHECK_MALLOC( mystrcpy = os0dup(str, len) );
+		LOG_E("Checking Regex");
 		err = regexec(&md->preg, mystrcpy, 0, NULL, 0);
 		free(mystrcpy);
 	}
@@ -271,10 +273,12 @@ static int compare_match(char * str, size_t len, struct match_data * md, int * r
 	if (err == 0) {
 		/* We have a match */
 		*res = 0;
+		LOG_E("Regex Match");
 		return 0;
 	}
 	
 	if (err == REG_NOMATCH) {
+		LOG_E("No Regex Match");
 		*res = 1;
 		return 0;
 	}
@@ -310,6 +314,7 @@ static int get_next_match(struct fd_list * list, char * str, size_t len, struct 
 	struct fd_list * li;
 	
 	TRACE_ENTRY("%p %p %zd %p", list, str, len, next_match);
+	LOG_E("List: %p Str: %p Len: %zd next_match: %p", list, str, len, next_match);
 	CHECK_PARAMS(list && str && len && next_match);
 	
 	if (*next_match)
@@ -362,24 +367,30 @@ int rtd_init(void)
 	for (i = 1; i < RTD_CRI_MAX; i++) {
 		switch (i) {
 			case RTD_CRI_OH:
+				LOG_E("Checking Origin-Host");
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Origin-Host", &AVP_MODELS[i], ENOENT ));
 				break;
 			case RTD_CRI_OR:
+				LOG_E("Checking Origin-Realm");
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Origin-Realm", &AVP_MODELS[i], ENOENT ));
 				break;
 			case RTD_CRI_DH:
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Destination-Host", &AVP_MODELS[i], ENOENT ));
 				break;
 			case RTD_CRI_DR:
+				LOG_E("Checking Destination-Realm");
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Destination-Realm", &AVP_MODELS[i], ENOENT ));
 				break;
 			case RTD_CRI_UN:
+				LOG_E("Checking User-Name");
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "User-Name", &AVP_MODELS[i], ENOENT ));
 				break;
 			case RTD_CRI_SI:
+				LOG_E("Checking Session-Id");			
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Session-Id", &AVP_MODELS[i], ENOENT ));
 				break;
 			default:
+				LOG_E("Missing definition in rt_default.conf");
 				TRACE_DEBUG(INFO, "Missing definition in extension initializer");
 				ASSERT( 0 );
 				return EINVAL;
@@ -540,7 +551,7 @@ int rtd_process( struct msg * msg, struct fd_list * candidates )
 		enum { NOT_RESOLVED_YET = 0, NOT_FOUND, FOUND } status;
 		union avp_value * avp;
 	} parsed_msg_avp[RTD_CRI_MAX];
-	
+	LOG_E("Checking message %p from candidates %p", msg, candidates);
 	TRACE_ENTRY("%p %p", msg, candidates);
 	CHECK_PARAMS(msg && candidates);
 	
@@ -576,7 +587,7 @@ int rtd_process( struct msg * msg, struct fd_list * candidates )
 				for ( l = target->rules[RTD_CRI_ALL].next; l != &target->rules[RTD_CRI_ALL]; l = l->next ) {
 					r = (struct rule *)l;
 					cand->score += r->score;
-					TRACE_DEBUG(ANNOYING, "Applied rule {'*' : '%s' += %d} to candidate '%s'", target->md.plain, r->score, cand->diamid);
+					LOG_E("Applied rule {'*' : '%s' += %d} to candidate '%s'", target->md.plain, r->score, cand->diamid);
 				}
 				
 				/* The target is matching this candidate, check if there are additional rules criteria matching this message. */
@@ -605,7 +616,7 @@ int rtd_process( struct msg * msg, struct fd_list * candidates )
 						
 						/* If we did not find the data for these rules in the message, just skip the series */
 						if (parsed_msg_avp[j].status == NOT_FOUND) {
-							TRACE_DEBUG(ANNOYING, "Skipping series of rules %d of target '%s', criteria absent from the message", j, target->md.plain);
+							LOG_E("Skipping series of rules %d of target '%s', criteria absent from the message", j, target->md.plain);
 							continue;
 						}
 						
@@ -617,7 +628,7 @@ int rtd_process( struct msg * msg, struct fd_list * candidates )
 								break;
 							
 							cand->score += r->score;
-							TRACE_DEBUG(ANNOYING, "Applied rule {'%s' : '%s' += %d} to candidate '%s'", r->md.plain, target->md.plain, r->score, cand->diamid);
+							LOG_E("Applied rule {'%s' : '%s' += %d} to candidate '%s'", r->md.plain, target->md.plain, r->score, cand->diamid);
 						} while (1);
 					}
 				}
@@ -631,16 +642,16 @@ int rtd_process( struct msg * msg, struct fd_list * candidates )
 void rtd_dump(void)
 {
 	int i;
-	fd_log_debug("[rt_default] Dumping rules repository...");
+	LOG_E("[rt_default] Dumping rules repository...");
 	for (i = 0; i < RTD_TAR_MAX; i++) {
 		if (!FD_IS_LIST_EMPTY( &TARGETS[i] )) {
 			struct fd_list * li;
-			fd_log_debug("  Targets list %d:", i);
+			LOG_E("  Targets list %d:", i);
 			for (li = TARGETS[i].next; li != &TARGETS[i]; li = li->next) {
 				dump_target(4, (struct target *)li);
 			}
 		}
 	}
 	
-	fd_log_debug("[rt_default] End of dump");
+	LOG_E("[rt_default] End of dump");
 }
