@@ -61,6 +61,7 @@ enum rtd_crit_type {
 	RTD_CRI_DH,
 	RTD_CRI_DR,
 	RTD_CRI_UN,
+	RTD_CRI_PI,
 	RTD_CRI_SI,
 	
 	RTD_CRI_MAX

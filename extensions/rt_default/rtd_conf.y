@@ -153,6 +153,7 @@ void yyerror (YYLTYPE *ploc, char * conffile, char const *s)
 %token 		DH
 %token 		DR
 %token 		UN
+%token 		PI
 %token 		SI
 
 %token 		REALM
@@ -236,6 +237,12 @@ CRITERIA:		'*'
 				$$.str = $3.str;
 				$$.regex =$3.regex;
 				$$.type = RTD_CRI_UN;
+			}
+			| PI '=' TSTRING
+			{
+				$$.str = $3.str;
+				$$.regex =$3.regex;
+				$$.type = RTD_CRI_PI;
 			}
 			| SI '=' TSTRING
 			{

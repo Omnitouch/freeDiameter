@@ -131,6 +131,7 @@ qstring		\"[^\"\n]*\"
 (?i:"dh")	 	{	return DH;	}
 (?i:"dr")	 	{	return DR;	}
 (?i:"un")	 	{	return UN;	}
+(?i:"pi")	 	{	return PI;	}
 (?i:"si")	 	{	return SI;	}
 (?i:"rlm")	 	{	return REALM;	}
 			

@@ -376,6 +376,9 @@ int rtd_init(void)
 			case RTD_CRI_UN:
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "User-Name", &AVP_MODELS[i], ENOENT ));
 				break;
+			case RTD_CRI_PI:
+				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Public-Identity", &AVP_MODELS[i], ENOENT ));
+				break;
 			case RTD_CRI_SI:
 				CHECK_FCT( fd_dict_search ( fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Session-Id", &AVP_MODELS[i], ENOENT ));
 				break;

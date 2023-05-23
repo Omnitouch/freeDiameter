@@ -61,6 +61,7 @@
 #    dh="STR/REG"   	-> idem with Destination-Host
 #    dr="STR/REG"   	-> idem with Destination-Realm
 #    un="STR/REG"   	-> idem with User-Name
+#    pi="STR/REG"   	-> idem with Public-Identity
 #    si="STR/REG"   	-> idem with Session-Id
 #
 # The TARGET is also of a similar form:
